@@ -56,6 +56,13 @@ SEED_TABLES = {
 BQ_SHIM = [
     (re.compile(r"`([A-Za-z0-9_]+)`"), r"\1"),  # strip backtick identifiers
     (re.compile(r"\bSAFE_DIVIDE\s*\(([^,]+),([^)]+)\)"), r"(\1 / NULLIF(\2, 0))"),
+    # FARM_FINGERPRINT -> DuckDB hash(): both are deterministic 64-bit string
+    # hashes; values differ but no parity metric reads hash values.
+    (re.compile(r"\bFARM_FINGERPRINT\s*\("), "hash("),
+    # DATE_SUB(d, INTERVAL n unit) -> (d - INTERVAL n unit)
+    (re.compile(r"\bDATE_SUB\s*\(([^,]+),\s*(INTERVAL\s+\d+\s+\w+)\s*\)"), r"(\1 - \2)"),
+    # DATE_DIFF(a, b, DAY) -> date_diff('day', b, a)
+    (re.compile(r"\bDATE_DIFF\s*\(([^,]+),([^,]+),\s*DAY\s*\)"), r"date_diff('day', \2, \1)"),
 ]
 
 
